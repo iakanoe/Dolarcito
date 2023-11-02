@@ -1,5 +1,8 @@
 package io.iakanoe.github.dolarcito.ui
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -115,9 +118,11 @@ fun DolarcitoNavigation() {
         }
     ) { innerPadding ->
         NavHost(
+            modifier = Modifier.padding(innerPadding),
             navController = navController,
             startDestination = Screen.RATES,
-            modifier = Modifier.padding(innerPadding)
+            enterTransition = { slideIntoContainer(towards = AnimatedContentTransitionScope.SlideDirection.Start) + fadeIn() },
+            exitTransition = { slideOutOfContainer(towards = AnimatedContentTransitionScope.SlideDirection.End) + fadeOut() }
         ) {
             composable(Screen.RATES) {
                 ExchangeRatesScreen(

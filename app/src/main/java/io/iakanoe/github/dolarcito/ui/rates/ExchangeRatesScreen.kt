@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -99,21 +100,23 @@ fun ExchangeRatesScreen(
         )
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when (val state = viewState) {
-            is ExchangeRatesViewState.Loading -> CircularProgressIndicator()
+    Surface {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            when (val state = viewState) {
+                is ExchangeRatesViewState.Loading -> CircularProgressIndicator()
 
-            is ExchangeRatesViewState.Error -> ErrorContent(
-                onRetryClick = { viewModel.update() }
-            )
+                is ExchangeRatesViewState.Error -> ErrorContent(
+                    onRetryClick = { viewModel.update() }
+                )
 
-            is ExchangeRatesViewState.Loaded -> ExchangeRateList(
-                exchangeRates = state.exchangeRates,
-                hiddenExchangeRates = state.hiddenExchangeRates
-            )
+                is ExchangeRatesViewState.Loaded -> ExchangeRateList(
+                    exchangeRates = state.exchangeRates,
+                    hiddenExchangeRates = state.hiddenExchangeRates
+                )
+            }
         }
     }
 }
