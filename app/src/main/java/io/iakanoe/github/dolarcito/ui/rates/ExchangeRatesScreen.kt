@@ -15,11 +15,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -55,6 +59,7 @@ import java.util.Calendar
 import kotlin.math.floor
 import kotlin.math.sign
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ExchangeRatesScreen(
     onNavigateToSettings: () -> Unit,
@@ -62,6 +67,13 @@ fun ExchangeRatesScreen(
     viewModel: ExchangeRatesViewModel = viewModel()
 ) {
     val viewState by viewModel.viewState.collectAsState()
+
+    val refreshing by remember { derivedStateOf { viewState is ExchangeRatesViewState.Loading } }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = { viewModel.update() }
+    )
 
     val now by currentTime.collectAsState(initial = Calendar.getInstance().timeInMillis)
 
@@ -106,17 +118,24 @@ fun ExchangeRatesScreen(
             contentAlignment = Alignment.Center
         ) {
             when (val state = viewState) {
-                is ExchangeRatesViewState.Loading -> CircularProgressIndicator()
-
                 is ExchangeRatesViewState.Error -> ErrorContent(
                     onRetryClick = { viewModel.update() }
                 )
 
                 is ExchangeRatesViewState.Loaded -> ExchangeRateList(
+                    pullRefreshState = pullRefreshState,
                     exchangeRates = state.exchangeRates,
-                    hiddenExchangeRates = state.hiddenExchangeRates
+                    hiddenExchangeRates = state.hiddenExchangeRates,
                 )
+
+                else -> {}
             }
+
+            PullRefreshIndicator(
+                refreshing = refreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 }
@@ -137,15 +156,19 @@ fun ErrorContent(onRetryClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ExchangeRateList(
+    pullRefreshState: PullRefreshState,
     exchangeRates: List<ExchangeRate>,
     hiddenExchangeRates: List<ExchangeRate>
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentPadding = PaddingValues(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
