@@ -1,6 +1,5 @@
 package io.iakanoe.github.dolarcito.ui.settings
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +35,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val actualSettings = getSettingsUseCase.execute().first()
-                Log.d("getdata", "GET DATA $actualSettings")
                 _viewState.value = SettingsViewState.Loaded(
                     showingRates = actualSettings.showingRatesNames,
                     hiddenRates = actualSettings.hiddenRatesNames

@@ -1,32 +1,30 @@
 package io.iakanoe.github.dolarcito.domain
 
-import android.util.Log
 import io.iakanoe.github.dolarcito.data.ExchangeRateRepository
 import io.iakanoe.github.dolarcito.data.SettingsRepository
 import io.iakanoe.github.dolarcito.model.ExchangeRate
 import io.iakanoe.github.dolarcito.model.ExchangeRateOrder
 import io.iakanoe.github.dolarcito.model.Settings
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 
 class GetOrderedExchangeRatesUseCase(
     private val settingsRepository: SettingsRepository,
     private val exchangeRateRepository: ExchangeRateRepository
 ) {
-    suspend fun execute(): Flow<ExchangeRateOrder> {
-        val existingRates = exchangeRateRepository.getExchangeRates()
+    fun execute(): Flow<ExchangeRateOrder> {
+        val existingRates = flow { emit(exchangeRateRepository.getExchangeRates()) }
 
         val actualSettings = settingsRepository.getSettings()
-            .map { settings ->
+            .combine(existingRates) { a, b -> a to b }
+            .map { (settings, existingRates) ->
                 val updated = settings.update(existingRates.map { it.name })
-
-                Log.d("UseCase", "map\nsettings=$settings\nupdated=$updated")
                 if (settings != updated) settingsRepository.setSettings(updated)
-                updated
+                updated to existingRates
             }
-            .onEach { Log.d("onEach", "ONEACH 1 $it") }
-            .map { settings ->
+            .map { (settings, existingRates) ->
                 ExchangeRateOrder(
                     showing = settings.showingRatesNames
                         .map { exchangeRateByName(existingRates, it) },
@@ -34,7 +32,6 @@ class GetOrderedExchangeRatesUseCase(
                         .map { exchangeRateByName(existingRates, it) }
                 )
             }
-            .onEach { Log.d("onEach", "ONEACH $it") }
 
         return actualSettings
     }

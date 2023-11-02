@@ -42,7 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.iakanoe.github.dolarcito.model.ExchangeRate
 import io.iakanoe.github.dolarcito.ui.TopAppBarState
-import java.text.DecimalFormat
+import io.iakanoe.github.dolarcito.ui.common.currentTime
+import io.iakanoe.github.dolarcito.ui.common.largeNumberText
+import io.iakanoe.github.dolarcito.ui.common.minutesText
+import io.iakanoe.github.dolarcito.ui.common.priceText
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -50,21 +53,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import kotlin.math.floor
 import kotlin.math.sign
-
-val Int.minutesText
-    get() = when (this) {
-        0 -> "hace menos de un minuto"
-        1 -> "hace un minuto"
-        else -> "hace $this minutos"
-    }
-
-val Float.priceText: String
-    get() = DecimalFormat("$#.##")
-        .format(this)
-
-val Long.largeNumberText: String
-    get() = DecimalFormat("#,###")
-        .format(this)
 
 @Composable
 fun ExchangeRatesScreen(
@@ -74,13 +62,15 @@ fun ExchangeRatesScreen(
 ) {
     val viewState by viewModel.viewState.collectAsState()
 
+    val now by currentTime.collectAsState(initial = Calendar.getInstance().timeInMillis)
+
     val lastUpdated by remember {
         derivedStateOf {
             viewState.let {
                 if (it is ExchangeRatesViewState.Loaded) {
-                    val millis = Calendar.getInstance().timeInMillis - it.updatedTime
+                    val millis = now - it.updatedTime
                     val minutes = floor(millis / 60000f)
-                    minutes.toInt()
+                    minutes.toInt().coerceAtLeast(0)
                 } else null
             }
         }
@@ -197,9 +187,11 @@ fun ExchangeRateCard(exchangeRate: ExchangeRate) {
         else -> MaterialTheme.colorScheme.outline
     }
 
+    val now by currentTime.collectAsState(initial = Calendar.getInstance().timeInMillis)
+
     val lastUpdated by remember {
         derivedStateOf {
-            val millis = Calendar.getInstance().timeInMillis - exchangeRate.timestamp
+            val millis = now - exchangeRate.timestamp
             val minutes = floor(millis / 60000f)
             minutes.toInt()
         }

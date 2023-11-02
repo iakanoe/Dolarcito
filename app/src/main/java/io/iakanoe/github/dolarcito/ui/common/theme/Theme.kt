@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.glance.GlanceTheme
+import androidx.glance.material3.ColorProviders
 
 private val dolarcitoDarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -55,6 +57,17 @@ fun DolarcitoTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        content = content
+    )
+}
+
+@Composable
+fun DolarcitoGlanceTheme(content: @Composable () -> Unit) {
+    GlanceTheme(
+        colors = ColorProviders(
+            light = dolarcitoLightColorScheme,
+            dark = dolarcitoDarkColorScheme
+        ),
         content = content
     )
 }
