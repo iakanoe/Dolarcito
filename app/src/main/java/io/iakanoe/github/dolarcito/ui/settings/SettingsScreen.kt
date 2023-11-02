@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -204,14 +204,14 @@ fun Item(
         if (isHidden) {
             IconButton(onClick = onShow) {
                 Icon(
-                    imageVector = Icons.Filled.Star,
+                    imageVector = Icons.Filled.FavoriteBorder,
                     contentDescription = "show button"
                 )
             }
         } else {
             IconButton(onClick = onHide) {
                 Icon(
-                    imageVector = Icons.Filled.Delete,
+                    imageVector = Icons.Filled.Favorite,
                     contentDescription = "hide button"
                 )
             }
