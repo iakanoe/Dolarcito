@@ -5,15 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.iakanoe.github.dolarcito.domain.GetOrderedExchangeRatesUseCase
 import io.iakanoe.github.dolarcito.model.ExchangeRate
-import io.iakanoe.github.dolarcito.model.ExchangeRateOrder
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -34,27 +29,23 @@ class ExchangeRatesViewModel @Inject constructor(
 
     fun update() {
         waitingJob?.cancel()
-        viewModelScope.launch {
-            getOrderedExchangeRatesUseCase.execute()
-                .map<ExchangeRateOrder, ExchangeRatesViewState> {
-                    ExchangeRatesViewState.Loaded(
-                        exchangeRates = it.showing,
-                        hiddenExchangeRates = it.hidden,
-                        updatedTime = Calendar.getInstance().timeInMillis
-                    )
-                }
-                .onStart { emit(ExchangeRatesViewState.Loading) }
-                .catch {
-                    it.printStackTrace()
-                    emit(ExchangeRatesViewState.Error)
-                }
-                .onCompletion {
-                    waitingJob = launch {
-                        delay(5 * 60000L)
-                        update()
-                    }
-                }
-                .collect { _viewState.emit(it) }
+        waitingJob = viewModelScope.launch {
+            _viewState.value = ExchangeRatesViewState.Loading
+
+            try {
+                val order = getOrderedExchangeRatesUseCase.execute()
+                _viewState.value = ExchangeRatesViewState.Loaded(
+                    exchangeRates = order.showing,
+                    hiddenExchangeRates = order.hidden,
+                    updatedTime = Calendar.getInstance().timeInMillis
+                )
+            } catch (throwable: Throwable) {
+                throwable.printStackTrace()
+                _viewState.value = ExchangeRatesViewState.Error
+            }
+
+            delay(5 * 60000L)
+            update()
         }
     }
 }

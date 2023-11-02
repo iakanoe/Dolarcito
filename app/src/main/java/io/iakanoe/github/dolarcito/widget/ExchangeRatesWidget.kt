@@ -36,6 +36,7 @@ import io.iakanoe.github.dolarcito.ui.common.priceText
 import io.iakanoe.github.dolarcito.ui.common.theme.DolarcitoGlanceTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import java.lang.Float.max
@@ -52,7 +53,7 @@ class ExchangeRatesWidget : GlanceAppWidget() {
         val appContext = context.applicationContext ?: error("No app context")
         val entryPoint: ExchangeRatesWidgetEntryPoint = EntryPointAccessors.fromApplication(appContext)
         val getOrderedExchangeRatesUseCase = entryPoint.getOrderedExchangeRatesUseCase()
-        return getOrderedExchangeRatesUseCase.execute()
+        return flow { emit(getOrderedExchangeRatesUseCase.execute()) }
             .map<ExchangeRateOrder, State> { State.Loaded(it) }
             .onStart { emit(State.Loading) }
             .catch {
