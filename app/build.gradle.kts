@@ -26,10 +26,20 @@ android {
         buildConfigField("String", "API_KEY", gradleLocalProperties(rootDir).getProperty("API_KEY"))
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootDir.resolve("keystore/dolarcito_release.jks")
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs["release"]
         }
     }
 
@@ -75,7 +85,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.0")
-    implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
